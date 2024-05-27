@@ -9,8 +9,6 @@ In this project, we will be creating scripts to implement and evaluate user-base
 
 ### The Data Structure
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/e3549f3d-761b-4969-9578-0f685c4883d5/0d80efbc-cfd1-4b1e-ac22-fec95b2d9aac/d5239a20-be95-41ed-9b5a-3283c81c06dc.png)
-
 ```jsx
 5 5 
 Alice User1 User2 User3 User4 
@@ -52,13 +50,9 @@ fs.readFile("test.txt", "utf-8", (err, data) => {
 
 This recommendation system is designed to personalize recommendations by analyzing the preferences and behaviours of similar users. 
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/e3549f3d-761b-4969-9578-0f685c4883d5/0553484a-e531-4f9a-b7ee-052bdbe8a16b/Untitled.png)
-
 ### Calculating Similarities between Users
 
 In user-based recommendation, similarities between users are typically measured using the [Pearson correlation coefficient](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient) which calculates the linear correlation between two data sets. Before computing similarities, biases such as average ratings by users are often corrected to reduce the impact of rating scale variations. 
-
-![Screen Shot 2024-05-10 at 5.39.48 PM.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/e3549f3d-761b-4969-9578-0f685c4883d5/a769d34a-b665-4cf7-81cf-93f4e4fb9ed5/Screen_Shot_2024-05-10_at_5.39.48_PM.png)
 
 Step 1: Calculate average ratings. This is the mean of all the ratings provided by a user. 
 
@@ -182,8 +176,6 @@ The similarity ratings ranges from -1 to 1. In this test case, user 1 has the mo
 
 Predictions for unrated items are then made by considering the ratings of a k number of similar users, weighted by their similarity scores. This is also called using the k-nearest neighbour.
 
-![Screen Shot 2024-05-10 at 6.49.42 PM.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/e3549f3d-761b-4969-9578-0f685c4883d5/1e74abdb-dbf6-42c2-93c2-bed623fb71cf/a475b224-0f47-4302-8d8a-491763f682c4.png)
-
 ```jsx
 //Predicts rating of an item based on k most similar users
 function predictRating(product) {
@@ -230,25 +222,15 @@ Item1 Item2 Item3 Item4 Item5
 
 Through user-based recommendation, we have successfully predicted that Alice would really like item5 with a rating of 4.85 ⭐️.
 
-For the full code implementation:
-
-[User-Based Code Implementation](https://www.notion.so/User-Based-Code-Implementation-461d5b5fc1b94cf4a80cc6e28d791dc8?pvs=21)
-
 ---
 
 ## Item-Based Recommendations
 
 Item-based recommendation is a method for suggesting items to users based on similarities between the items themselves. 
 
-![Movie D is recommended because Movie C is similar.](https://prod-files-secure.s3.us-west-2.amazonaws.com/e3549f3d-761b-4969-9578-0f685c4883d5/271cb91d-ed89-4b15-bf26-53422d2a3f31/Untitled.png)
-
-Movie D is recommended because Movie C is similar.
-
 ## Calculating Similar between Items
 
 This approach calculates the similarity between items using cosine similarity, which measures the angle between rating vectors of items across users. ratings are organized into a user-item matrix, where biases like average ratings are often removed. 
-
-![Screen Shot 2024-05-13 at 3.49.04 PM.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/e3549f3d-761b-4969-9578-0f685c4883d5/5fcdb2d1-a68a-43e7-a3e4-ff282a5e56d5/Screen_Shot_2024-05-13_at_3.49.04_PM.png)
 
 Step 1: calculating average ratings and removing biases.
 
@@ -393,5 +375,3 @@ Item1 Item2 Item3 Item4 Item5
 ```
 
 Through item-based recommendation, we have successfully predicted how likely Alice will enjoy item 5 based on similar items.
-
-For the full code implementation:
