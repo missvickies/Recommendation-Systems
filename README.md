@@ -1,5 +1,5 @@
 # Recommendation-Systems
-User-based and Item-based Implementations
+User-based and Item-based Implementations. If you enjoy reading on notion better [click here](https://granite-diver-d78.notion.site/Recommendation-Systems-1ab59e9c40c84cd7bcff948a58c4b3bd?pvs=4).
 
 ## Introduction
 
