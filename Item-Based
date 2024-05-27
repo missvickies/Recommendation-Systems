@@ -1,0 +1,125 @@
+// Importing necessary modules
+import { eucDistance, dotProduct } from "./euc.js"; // Importing functions for Euclidean distance and dot product
+import { calcAvg, calcBias } from "./avg.js"; // Importing functions for calculating average and bias
+import { createRequire } from "module"; // Importing createRequire function from the module module
+const require = createRequire(import.meta.url); // Creating require function
+const fs = require("fs"); // Importing file system module
+
+// Function to read data from file asynchronously
+async function readFile(fileName) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(fileName, "utf8", function (error, data) {
+            if (error) return reject(error);
+            console.log(fileName);
+
+            // Splitting data
+            let w = data.split("\n");
+            let line1 = w[0].split(" ");
+            let numUsers = w[0][0]; // Number of users
+            let numItems = line1[1]; // Number of items
+            let users = w.splice(3, w.length).map(user => user.split(" ").map(x => parseInt(x))); // User-item matrix
+
+            sim(users, numItems, numUsers); // Call the sim function to perform recommendation
+
+            resolve(); // Resolve the promise
+        });
+    });
+}
+
+// Function to perform recommendation
+function sim(users, numItems, numUsers) {
+    // Calculate averages from each user
+    let avg = users.map(user => calcAvg(user));
+
+    // Subtract user bias from users and save into a new matrix
+    let usersB = [];
+    for (let i = 0; i < numUsers; i++) {
+        let newRating = [];
+        for (let j = 0; j < numItems; j++) {
+            if (users[i][j] !== -1) {
+                newRating.push(calcBias(users[i][j], avg[i]));
+            } else {
+                newRating.push(null);
+            }
+        }
+        usersB.push(newRating);
+    }
+
+    let pred = [];
+    // Calculate cosine similarity for each item
+    for (let user = 0; user < numUsers; user++) {
+        for (let item = 0; item < numItems; item++) {
+            if (users[user][item] == -1) {
+                let CS = calcCS(user, item, [...usersB], numItems, numUsers);
+                pred.push({
+                    x: user,
+                    y: item,
+                    result: prediction(CS, users, user, item),
+                });
+            }
+        }
+    }
+
+    // Update user-item matrix with predicted ratings
+    pred.forEach(p => (users[p.x][p.y] = p.result));
+    console.table(users); // Display the updated user-item matrix
+}
+
+// Function to predict rating for a user-item pair
+function prediction(CS, users, user, item) {
+    let k = 2; // Number of nearest neighbors to consider
+    let numerator = 0;
+    let denominator = 0;
+
+    for (let i = 0; i < k; i++) {
+        if (users[user][CS[i].itemID] !== -1 && CS[i].similarity > 0) {
+            numerator += CS[i].similarity * users[user][CS[i].itemID];
+            denominator += CS[i].similarity;
+        } else if (CS[i].itemID == user) {
+            k++;
+        }
+    }
+    return numerator / denominator; // Return the predicted rating
+}
+
+// Function to calculate cosine similarity between items
+function calcCS(user, item, usersB, numItems, numUsers) {
+    let CS = [];
+
+    for (let i = 0; i < numItems; i++) {
+        let numerator = 0;
+        let denominator;
+        let a = [];
+        let b = [];
+        let ratedItems = [];
+        for (let j = 0; j < numUsers; j++) {
+            if (usersB[j][i] !== null && usersB[j][item] !== null && i !== item) {
+                a.push(usersB[j][i]);
+                b.push(usersB[j][item]);
+                ratedItems.push(j);
+            }
+        }
+        if (i !== item) {
+            numerator = dotProduct(a, b); // Calculate dot product
+            denominator = eucDistance(a, b); // Calculate Euclidean distance
+            CS.push({
+                itemID: i,
+                similarity: numerator / denominator,
+                rui: ratedItems,
+            });
+        }
+    }
+    CS.sort((a, b) => b.similarity - a.similarity); // Sort by similarity in descending order
+
+    return CS; // Return the cosine similarity matrix
+}
+
+// Main function to run recommendation process
+async function run() {
+    await readFile("test.txt");
+    await readFile("test2.txt");
+    await readFile("test3.txt");
+    await readFile("testa.txt");
+}
+
+run(); // Run the recommendation process
