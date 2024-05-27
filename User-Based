@@ -1,0 +1,109 @@
+const fs = require("fs");
+
+// Constants
+let finalMatrix = []; // Matrix with new predictions
+let numUsers; // Total number of users
+let numItems; // Total number of items
+let line1; // First row from matrix that defines the number of users and items
+let k = 2; // Neighborhood value
+
+// Read file and process data
+fs.readFile("test.txt", "utf-8", (err, data) => {
+  if (err) throw err;
+
+  // Parse data
+  let lines = data.split("\n");
+  line1 = lines[0].split(" ");
+  numUsers = parseInt(line1[0]); // # of users
+  numItems = parseInt(line1[1]); // # of items
+
+  // Get user data
+  let users = lines
+    .slice(3)
+    .map((user) => user.split(" ").map((x) => parseInt(x)));
+  finalMatrix = [...users];
+
+  // Perform calculations
+  for (let s = 0; s < users.length; s++) {
+    // Perform prediction on users that do not have a rating on an item yet
+    if (users[s].includes(-1)) {
+      let currentUser = [...users[s]];
+      let otherUsers = [...users];
+      sim(currentUser, otherUsers, s);
+    }
+  }
+  console.table(finalMatrix);
+});
+
+// Function to find top k most similar users and predict rating
+function sim(currentUser, otherUsers, index) {
+  let La = currentUser.filter((x) => x !== -1).length; // # of reviews from currentUser
+
+  // Calculate averages
+  let Ra =
+    currentUser
+      .filter((x) => x != -1)
+      .reduce((prev, curr) => prev + curr) / La;
+  let Rb = otherUsers.map(
+    (user) =>
+      user.filter((x) => x !== -1).reduce((prev, curr) => prev + curr) /
+      user.filter((x) => x !== -1).length
+  );
+
+  let Bias = [];
+  let std = [];
+  let PCC = [];
+
+  for (let i = 0; i < numUsers; i++) {
+    let Ba = [];
+    let Bb = [];
+    Bias[i] = 0;
+    let sqra = 0;
+    let sqrb = 0;
+
+    if (JSON.stringify(currentUser) !== JSON.stringify(otherUsers)) {
+      for (let j = 0; j < numItems; j++) {
+        if (currentUser[j] !== -1 && otherUsers[i][j] !== -1) {
+          Ba[j] = currentUser[j] - Ra;
+          Bb[j] = (otherUsers[i][j] - Rb[i])
+          Bias[i] += Ba[j] * Bb[j];
+          sqra += Ba[j] ** 2;
+          sqrb += (otherUsers[i][j] - Rb[i]) ** 2;
+        }
+      }
+    }
+    std[i] = Math.sqrt(sqra * sqrb);
+    PCC[i] = { user: i, PCC: round(Bias[i] / std[i], 2) };
+  }
+
+  // Sort PCC array
+  console.log(PCC);
+  PCC.splice(index, 1); // Remove current user's PCC
+  PCC.sort((a, b) => b.PCC - a.PCC);
+
+  // Function to calculate prediction
+  function pred(product) {
+    let denominator = 0;
+    let numerator = 0;
+    for (let i = 0; i < k; i++) {
+      let user = PCC[i].user;
+      denominator += PCC[i].PCC;
+      numerator += PCC[i].PCC * (otherUsers[user][product] - Rb[user]);
+    }
+    return round(Ra + numerator / denominator, 2);
+  }
+
+  // Predict ratings for items
+  for (let i = 0; i < numItems; i++) {
+    if (currentUser[i] == -1) {
+      currentUser[i] = pred(i);
+    }
+  }
+  finalMatrix[index] = currentUser;
+}
+
+// Function to round a value to a specific precision
+function round(value, precision) {
+  let multiplier = Math.pow(10, precision || 0);
+  return Math.round(value * multiplier) / multiplier;
+}
